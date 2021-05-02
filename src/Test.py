@@ -1,20 +1,60 @@
-from dasgraph.Automaton import Automaton
+from dasgraph.automataStructure import Automaton
+from dasgraph.automataOperators import productComposition,parallelComposition
 
-#Automato
-plantaTeste = Automaton('AutoTest')
+G1 = Automaton('G1')
+G1.addState('x', stateMarking = 'accepting', initState = True)
+G1.addState('y')
+G1.addState('z')
+G1.addEvent('a')
+G1.addEvent('b')
+G1.addEvent('g')
+G1.addEdge('x','x','a')
+G1.addEdge('x','z','g')
+G1.addEdge('z','z','b')
+G1.addEdge('z','y','a')
+G1.addEdge('z','y','b')
+G1.addEdge('z','y','g')
+G1.addEdge('y','y','b')
+G1.addEdge('y','x','a')
 
-#Estados
-plantaTeste.addState('Origem')
-plantaTeste.addState('Destino')
+G2 = Automaton('G2')
+G2.addState('0', initState = True)
+G2.addState('1', stateMarking = 'accepting')
+G2.addEvent('a')
+G2.addEvent('b')
+G2.addEdge('0','0','b')
+G2.addEdge('0','1','a')
+G2.addEdge('1','1','a')
+G2.addEdge('1','0','b')
 
-#Eventos
-plantaTeste.addEvent('Ida')
-plantaTeste.addEvent('Volta')
+#Produto
 
-#Arestas
-plantaTeste.addEdge('Origem','Destino','Ida')
-plantaTeste.addEdge('Destino','Origem','Volta')
+G1xG2 = productComposition(G1,G2)
 
-# implementar composições de automatos:
-# paralela e produto
+print('******* Composição Produto ********')
 
+estados = ''
+for state in G1xG2.states:
+    estados = estados + state.stateName + ' , '
+print(estados)
+for edge in G1xG2.edges:
+    for event in edge.triggerEvents:
+        print('De: ' + edge.fromState.stateName + ', Para: ' + edge.toState.stateName + ', Evento: ' + event.eventName)
+        
+print('***********************************')
+
+#Paralelo
+
+G1IIG2 = parallelComposition(G1,G2)
+
+print('******* Composição Paralela ******* ')
+
+estados = ''
+for state in G1IIG2.states:
+    estados = estados + state.stateName + ' , '
+print(estados)
+for edge in G1IIG2.edges:
+    for event in edge.triggerEvents:
+        print('De: ' + edge.fromState.stateName + ', Para: ' + edge.toState.stateName + ', Evento: ' + event.eventName)
+
+print('***********************************')
