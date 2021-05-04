@@ -30,31 +30,13 @@ G2.addEdge('1','0','b')
 #Produto
 
 G1xG2 = productComposition(G1,G2)
-
 print('******* Composição Produto ********')
-
-estados = ''
-for state in G1xG2.states:
-    estados = estados + state.stateName + ' , '
-print(estados)
-for edge in G1xG2.edges:
-    for event in edge.triggerEvents:
-        print('De: ' + edge.fromState.stateName + ', Para: ' + edge.toState.stateName + ', Evento: ' + event.eventName)
-        
+G1xG2.printAutomata()   
 print('***********************************')
 
 #Paralelo
 
 G1IIG2 = parallelComposition(G1,G2)
-
 print('******* Composição Paralela ******* ')
-
-estados = ''
-for state in G1IIG2.states:
-    estados = estados + state.stateName + ' , '
-print(estados)
-for edge in G1IIG2.edges:
-    for event in edge.triggerEvents:
-        print('De: ' + edge.fromState.stateName + ', Para: ' + edge.toState.stateName + ', Evento: ' + event.eventName)
-
+G1IIG2.printAutomata()
 print('***********************************')

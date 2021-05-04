@@ -45,6 +45,17 @@ class Automaton(object):
         self.kind = automatonKind
         self.deterministic = automatonDeterminism
         
+    def printAutomata(self):
+        print(self.name)
+        states = 'States: '
+        for state in self.states:
+            states = states + state.stateName + ' , '
+        states = states[:-2] + '.'
+        print(states)
+        for edge in self.edges:
+            for event in edge.triggerEvents:
+                print('From: ' + edge.fromState.stateName + ', To: ' + edge.toState.stateName + ', Event: ' + event.eventName)
+        
     def getState(self,stateName):
         for state in self.states:
             if state.stateName == stateName:
@@ -73,6 +84,11 @@ class Automaton(object):
                 return event
         return False
     
+    def renameEvent(self,oldEventName,newEventName):
+        for event in self.events:
+            if event.eventName == oldEventName:
+                event.eventName = newEventName
+    
     def getEdge(self, fromStateName, toStateName):
         for edge in self.edges:
             if edge.fromState.stateName == fromStateName and edge.toState.stateName == toStateName:
@@ -94,8 +110,9 @@ class Automaton(object):
             raise RepeatedNameError('The event name "' + eventName + '" is taken. Use a different name for this event or delete the former.')
         
     def addState(self, stateName, stateMarking='', initState = False):
+        #verificar se já não existe um estado inicial
         if not self.getState(stateName):
-            if stateMarking == '' or stateMarking == 'accepting' or stateMarking == 'forbidden': 
+            if stateMarking == '' or stateMarking == 'accepting' or stateMarking == 'forbidden':
                 self.states.append(State(stateName,stateMarking,initState))
             else:
                 raise NotMarkingMode('The marking mode "' + stateMarking + '" does not exist. Try "accepting" or "forbidden" or leave it blank.')
@@ -133,4 +150,3 @@ class Automaton(object):
                     if eventName == event.eventName:
                         return edge.toState
         return self.getState(stateName)
-    

@@ -54,7 +54,7 @@ def productComposition(A1,A2):
     
     startingA1state = A1.getInitState()
     startingA2state = A2.getInitState()
-    A.addState(startingA1state.stateName + ',' + startingA2state.stateName)
+    A.addState(startingA1state.stateName + ',' + startingA2state.stateName, initState=True)
     
     startingA1events = A1.getPossibleEventNames(startingA1state.stateName)
     startingA2events = A2.getPossibleEventNames(startingA2state.stateName)
@@ -107,7 +107,7 @@ def parallelComposition(A1,A2):
     
     startingA1state = A1.getInitState()
     startingA2state = A2.getInitState()
-    A.addState(startingA1state.stateName + ',' + startingA2state.stateName)
+    A.addState(startingA1state.stateName + ',' + startingA2state.stateName, initState=True)
     
     startingA1events = A1.getPossibleEventNames(startingA1state.stateName)
     startingA2events = A2.getPossibleEventNames(startingA2state.stateName)
@@ -121,3 +121,26 @@ def parallelComposition(A1,A2):
         A = expandParallelCompStates(A,A1,A2,A1UniqueEvents,A2UniqueEvents,startingA1state,startingA2state,eventName)
 
     return A
+
+def isDiagnosable(G,failEvents):
+    
+    #calcular GN, sendo produto de G (automato com evento de falha) e AN (eventos: todos menos falha)
+    #retirar os eventos de falha de GN
+    #calcular GL, sendo parlelo de G e AL
+    #calcular GL', marcando todos os estados com y de GL 
+    #calcular GF, sendo CoAc(GL')
+    #calcular GNR, renomeando os eventos nao observaveis de GN, adicionando R ao final do nome
+    #calcular GV, sendo paralelo de GNR com GF
+    #procurar por ciclos de estados com y na segunda coordenada. 
+    #verificar se, em pelo menos um dos eventos desse ciclo, existe algum evento que não foi renomeado. Se sim, não é diagnosticavel.
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    return True
