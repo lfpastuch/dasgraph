@@ -1,10 +1,11 @@
 class Event(object):
 
-    def __init__(self, eventName, eventType, eventObservability):
+    def __init__(self, eventName, eventType, eventObservability, failureEvent):
         
         self.eventName = eventName
         self.eventType = eventType
         self.observable = eventObservability
+        self.fail = failureEvent
         
 class State(object):
 
@@ -23,6 +24,9 @@ class Edge(object):
         self.triggerEvents.append(triggerEvent)
         
 class RepeatedNameError(Exception):
+    pass
+
+class RepeatedInitState(Exception):
     pass
 
 class NotMarkingMode(Exception):
@@ -66,7 +70,7 @@ class Automaton(object):
         for state in self.states:
             if state.initState:
                 return state
-        raise NoState('There is no initial state defined in ' + self.name + '.')
+        return False
     
     def getPossibleEventNames(self,stateName):
         if not self.getState(stateName):
@@ -88,6 +92,10 @@ class Automaton(object):
         for event in self.events:
             if event.eventName == oldEventName:
                 event.eventName = newEventName
+                
+    def removeEvent(self,eventName):
+        event = self.getEvent(eventName)
+        self.events.remove(event)
     
     def getEdge(self, fromStateName, toStateName):
         for edge in self.edges:
@@ -103,17 +111,23 @@ class Automaton(object):
                         return edge
         return False
             
-    def addEvent(self, eventName, eventType='Controllable', eventObservability=True):
+    def addEvent(self, eventName, eventType='Controllable', eventObservability=True, failureEvent = False):
         if not self.getEvent(eventName):
-            self.events.append(Event(eventName,eventType,eventObservability))
+            self.events.append(Event(eventName,eventType,eventObservability,failureEvent))
         else:
             raise RepeatedNameError('The event name "' + eventName + '" is taken. Use a different name for this event or delete the former.')
         
     def addState(self, stateName, stateMarking='', initState = False):
-        #verificar se já não existe um estado inicial
         if not self.getState(stateName):
             if stateMarking == '' or stateMarking == 'accepting' or stateMarking == 'forbidden':
-                self.states.append(State(stateName,stateMarking,initState))
+                if initState == True:
+                    if not self.getInitState():
+                        self.states.append(State(stateName,stateMarking,initState))
+                    else:
+                        initName = self.getInitState().stateName
+                        raise RepeatedInitState('An initial state already exists for this Automaton. Initial state: ' + initName)
+                else: 
+                    self.states.append(State(stateName,stateMarking,initState))
             else:
                 raise NotMarkingMode('The marking mode "' + stateMarking + '" does not exist. Try "accepting" or "forbidden" or leave it blank.')
         else:

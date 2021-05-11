@@ -1,4 +1,8 @@
 from dasgraph.automataStructure import Automaton
+from _operator import index
+
+index = 0
+S = []
 
 def eventUnion(A1,A2):
     result = []
@@ -121,26 +125,105 @@ def parallelComposition(A1,A2):
         A = expandParallelCompStates(A,A1,A2,A1UniqueEvents,A2UniqueEvents,startingA1state,startingA2state,eventName)
 
     return A
+        
+def getCycles(G):
+    
+    global index
+    global S
+    
+    cycles = []
+    
+    for state in G.states:
+        if not hasattr(state,'index'):
+            SCC = getCyclesCall(G,state)
+            cycles.append(SCC)
+            
+    index = 0
+    S = []
+    return cycles
+    
+def getCyclesCall(G,state):
+    
+    global index
+    global S
+    
+    state.index = index
+    state.lowlink = index
+    index += 1
+    S.append(state)
+    state.onStack = True
+    
+    for edge in G.edges:
+        if edge.fromState.stateName == state.stateName:
+            if not hasattr(edge.toState,'index'):
+                SCC = getCyclesCall(G,edge.toState)
+                if SCC:
+                    return SCC
+                state.lowlink = min(state.lowlink,edge.toState.lowlink)
+            elif edge.toState.onStack:
+                state.lowlink = min(state.lowlink,edge.toState.index)
+    
+    if state.lowlink == state.index:
+        SCC = []
+        while S[-1].stateName != state.stateName:
+            w = S.pop()
+            w.onStack = False
+            SCC.append(w)
+        return SCC
+    return False
 
-def isDiagnosable(G,failEvents):
+
+def isDiagnosable(G):
     
     #calcular GN, sendo produto de G (automato com evento de falha) e AN (eventos: todos menos falha)
+    An = Automaton('An')
+    An.addState('n', initState=True)
+    for event in G.events:
+        if not event.fail:
+            An.addEvent(event.eventName, event.eventType, event.observable)
+    Gn = productComposition(G, An)
     #retirar os eventos de falha de GN
+    for event in Gn.events:
+        if event.fail:
+            Gn.removeEvent(event)
     #calcular GL, sendo parlelo de G e AL
+    Al = Automaton('Al')
+    Al.addState('n', initState=True)
+    Al.addState('y')
+    for event in G.events:
+        if event.fail:
+            Al.addEvent(event.eventName, event.eventType, event.observable, event.fail)
+            Al.addEdge('n','y',event.eventName)
+            Al.addEdge('y','y',event.eventName)
+    Gl = parallelComposition(G,Al)
     #calcular GL', marcando todos os estados com y de GL 
+    for state in Gl.states:
+        if state.stateName[-1] == 'y':
+            state.stateMarking = 'accepting'
     #calcular GF, sendo CoAc(GL')
+    Gf = Gl
     #calcular GNR, renomeando os eventos nao observaveis de GN, adicionando R ao final do nome
+    Gnr = Gn
+    for event in Gnr.events:
+        if not event.observable:
+            event.eventName = event.eventName + 'r'
     #calcular GV, sendo paralelo de GNR com GF
-    #procurar por ciclos de estados com y na segunda coordenada. 
+    Gv = parallelComposition(Gnr,Gf)
+    #procurar por ciclos de estados com y na segunda coordenada.
+    loops = getCycles(G)
     #verificar se, em pelo menos um dos eventos desse ciclo, existe algum evento que não foi renomeado. Se sim, não é diagnosticavel.
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    for loop in loops:
+        hasY = False
+        for state in loop:
+            if state.stateName[-1] == 'y':
+                hasY = True
+        if hasY:
+            for i in range(len(loop)):
+                if i < (len(loop)-1):
+                    edge = G.getEdge(loop[i],loop[i+1])
+                else:
+                    edge = G.getEdge(loop[i],loop[0])
+                for event in edge.triggerEvents:
+                    if event.eventName[-1] != 'r':
+                        return False
     return True
